@@ -32,6 +32,7 @@ indices = [i for i, item in enumerate(rawSNPID) if item in SNPID] # indices of r
 rawSet = [raw[i] for i in indices] # extract these SNPs from raw data
 
 if len(rawSet) != len(SNPID):
+    print('\n\n')
     raise ValueError('Please input a 23andMe v5 raw data file') # verify we have appropriate SNPs/raw data file
 
 
@@ -61,9 +62,9 @@ def alleleScore(rawRow):
     return alleleScore
     
 scores = list(map(alleleScore, rawSet))
-GRS = sum(scores)
+GRS = round(sum(scores),2)
 
-GRSn = (GRS-2.91)/0.157
+GRSn = round((GRS-2.91)/0.157,2)
 
 ## PRINT TO CONSOLE ##
 print('\n')
@@ -71,4 +72,8 @@ print('Patient\'s raw GRS is: '+str(GRS))
 print('\n')
 print('Patient\'s GRS normalized to European population is: '+str(GRSn))
 print('\n')
+print('\t\t<.....low risk.....|.....med risk.....|.....high risk.....>')
+print('Normalized')
+print('   GRS\t\t\t\t-0.83\t    0\t    0.83')
+print('\n\n')
 

@@ -14,6 +14,7 @@ with open('GRS_23andMe_info.txt') as csvfile:
     reader = csv.reader(csvfile, delimiter='\t')
     for row in reader:
         GRS_info.append(row)
+GRS_info.pop(0) # Get rid of headings
 
 # read in patient's 23&Me data
 raw = []
@@ -25,9 +26,14 @@ raw = raw[20:] # remove header info
 
 ## EXTRACT APPROPRIATE DATA ##
 SNPID = [item[0] for item in GRS_info] # SNPs in GRS
+
 rawSNPID = [item[0] for item in raw] # SNPs in rawData
 indices = [i for i, item in enumerate(rawSNPID) if item in SNPID] # indices of rawData with GRS SNPs
 rawSet = [raw[i] for i in indices] # extract these SNPs from raw data
+
+if len(rawSet) != len(SNPID):
+    raise ValueError('Please input a 23andMe v5 raw data file') # verify we have appropriate SNPs/raw data file
+
 
 ## CALCULATE GRS ##
 # take in one SNP from rawData at a time and determine its contribution to GRS
@@ -49,10 +55,6 @@ def alleleScore(rawRow):
     elif read == (non+non):
         count = 0
     else:
-        #print(SNPID+': Sample 23&Me alleles don\t match reference')
-        #print(read)
-        #print(eff)
-        #print(non)
         raise ValueError(str(rawSNPID)+': Patient\'s 23&Me alleles don\'t match those in GRS reference')
         
     alleleScore = count*math.log(weight,10) # return score for the allele

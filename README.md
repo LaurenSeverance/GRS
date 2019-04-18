@@ -1,5 +1,5 @@
 # GRS
-Calculate genetic risk score and age of CAC scan
+Calculate genetic risk score and age of CAC scan using 23andMe v5 raw data
 
 Instructions on Mac:
 

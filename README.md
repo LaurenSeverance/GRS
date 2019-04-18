@@ -7,7 +7,7 @@ Instructions on Mac:
 
 2. Locate and unzip the GRS-master folder: Open the Finder, navigate to the folder where your file was downloaded (i.e. your Downloads folder), and unzip the 'GRS-master.zip' file.
 
-3. Prepare raw data: Download raw data from 23&Me, and unzip the file so that it is a .txt file. Place this raw data .txt file into the unzipped GRS-master folder. The raw data file name will likely take the form 'genome_FirstName_LastName_v5_Full_201XXXXXXXXXXX.txt'.
+3. Prepare raw data: Download raw data from 23&Me (this software will only work with data from the v5 chip), and unzip the file so that it is a .txt file. Place this raw data .txt file into the unzipped GRS-master folder. The raw data file name will likely take the form 'genome_FirstName_LastName_v5_Full_201XXXXXXXXXXX.txt'.
 
 4. Open a command line window: This can be done by opening the Finder and navigating to Applications --> Utilities --> Terminal
 

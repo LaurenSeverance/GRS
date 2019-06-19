@@ -6,15 +6,16 @@ import csv
 
 
 ## READ IN FILES ##
-rawData = str(sys.argv[1]) # read raw data file
+rawData = str(sys.argv[1]) # read raw data file name from terminal command
 
-# read in GRS_Info file
-GRS_info = []
-with open('GRS_23andMe_info.txt') as csvfile:
+# read in GRS_Info file for v5 chip
+
+GRS_info_v5 = []
+with open('GRS_23andMe_v5_info.txt') as csvfile:
     reader = csv.reader(csvfile, delimiter='\t')
     for row in reader:
-        GRS_info.append(row)
-GRS_info.pop(0) # Get rid of headings
+        GRS_info_v5.append(row)
+GRS_info_v5.pop(0) # Get rid of headings
 
 # read in patient's 23&Me data
 raw = []
@@ -25,15 +26,18 @@ with open(rawData) as csvfile:
 raw = raw[20:] # remove header info
 
 ## EXTRACT APPROPRIATE DATA ##
-SNPID = [item[0] for item in GRS_info] # SNPs in GRS
 
-rawSNPID = [item[0] for item in raw] # SNPs in rawData
+GRS_info = GRS_info_v5 # set v5 chip info as default
+SNPID = [item[0] for item in GRS_info] # extract SNPs in GRS for v5 chip
+rawSNPID = [item[0] for item in raw] # list of all SNPs in rawData file
 indices = [i for i, item in enumerate(rawSNPID) if item in SNPID] # indices of rawData with GRS SNPs
-rawSet = [raw[i] for i in indices] # extract these SNPs from raw data
 
-if len(rawSet) != len(SNPID):
+if len(indices) != len(GRS_info): # if we can't get all of the SNPs from the v5 chip
     print('\n\n')
-    raise ValueError('Please input a 23andMe v5 raw data file') # verify we have appropriate SNPs/raw data file
+    raise ValueError('\033[91mPlease input a 23andMe v5 raw data file.\033[0m') # we can't run analysis
+
+    
+rawSet = [raw[i] for i in indices] # extract appropriate SNPs from raw data
 
 
 ## CALCULATE GRS ##
@@ -43,6 +47,10 @@ def alleleScore(rawRow):
     read = rawRow[3] # patients genotype at the SNP
     i = SNPID.index(rawSNPID) # index of SNP in GRS info
     SNPinfo = GRS_info[i] # get all of the SNP info
+    
+    if (SNPinfo[0]!=rawSNPID): #if we didn't grab correct SNP from GRS_info file, stop calculation
+        print('\n\n')
+        raiseValueError('\033[91mCannot calculate GRS. Problem matching patient data to GRS SNP.\033[0m')
     
     eff = SNPinfo[1] # effect allele
     non = SNPinfo[2] # non-effect allele
@@ -55,8 +63,12 @@ def alleleScore(rawRow):
         count = 2
     elif read == (non+non):
         count = 0
+    elif read == '--': # if there is no read reported at the given SNP, stop calculation
+        print('\n\n')
+        raise ValueError('\033[91mCannot calculate GRS. No read at SNP '+str(rawSNPID)+' which is required for GRS calculation.\033[0m')
     else:
-        raise ValueError(str(rawSNPID)+': Patient\'s 23&Me alleles don\'t match those in GRS reference')
+        print('\n\n')
+        raise ValueError('\033[91m'+str(rawSNPID)+': Patient\'s 23&Me alleles don\'t match those in GRS reference\033[0m')
         
     alleleScore = count*math.log(weight,10) # return score for the allele
     return alleleScore
@@ -64,16 +76,29 @@ def alleleScore(rawRow):
 scores = list(map(alleleScore, rawSet))
 GRS = round(sum(scores),2)
 
-GRSn = round((GRS-2.91)/0.157,2)
+if GRS_info == GRS_info_v5: # use v5 parameters from MESA to normalize
+    GRSn = round((GRS-2.91)/0.157,2)
+    GRScutoff = str(0.8)
+    version = str(5)
+    ageEquationMen = '42.9-2.86*GRSn'
+    ageEquationWomen = '55.2-2.86*GRSn'
+
+
 
 ## PRINT TO CONSOLE ##
 print('\n')
 print('Patient\'s raw GRS is: '+str(GRS))
 print('\n')
-print('Patient\'s GRS normalized to European population is: '+str(GRSn))
+print('Patient\'s GRS normalized to European population (GRSn) is: '+str(GRSn))
 print('\n')
-print('\t\t<.....low risk.....|.....med risk.....|.....high risk.....>')
+print('\t\t<....low risk....|....................med risk....................|....high risk...>')
 print('Normalized')
-print('   GRS\t\t\t\t-0.83\t    0\t    0.83')
+print('   GRS\t\t\t       -{}\t\t\t 0\t\t\t {}'.format(GRScutoff,GRScutoff))
+print('\n\n')
+print('Patient\'s 23andMe \033[91mversion {}\033[0m GRS normalized to European population (GRSn) can be used in one of the \nfollowing equations to calculate the age at which probability of coronary artery calcium reaches 25%:'.format(version))
+print('\n')
+print('Men: Age = {}'.format(ageEquationMen))
+print('\n')
+print('Women: Age = {}'.format(ageEquationWomen))
 print('\n\n')
 
